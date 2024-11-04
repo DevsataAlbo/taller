@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ product.name }} - Sistema de Ventas{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Encabezado con botones de acción -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">Detalles del Producto</h1>
+            <div class="space-x-2">
+                {% if request.user.role == 'admin' %}
+                <a href="{% url 'products:update' product.pk %}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-edit mr-2"></i>Editar
+                </a>
+                <a href="{% url 'products:delete' product.pk %}" 
+                   class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-trash mr-2"></i>Eliminar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="md:flex">
+                <!-- Imagen del producto -->
+                <div class="md:w-1/3 p-6">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" 
+                             alt="{{ product.name }}" 
+                             class="w-full h-64 object-cover rounded-lg">
+                    {% else %}
+                        <div class="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-box text-gray-400 text-6xl"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Información del producto -->
+                <div class="md:w-2/3 p-6">
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800">{{ product.name }}</h2>
+                        <p class="text-sm text-gray-600">Código: {{ product.code }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Categoría</h3>
+                            <p class="text-lg text-gray-900">{{ product.category.name }}</p>
+                        </div>
+
+                        <!-- Información de Precios -->
+                        <div class="col-span-2 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Información de Precios</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Precio de Compra</p>
+                                    <p class="text-lg font-medium">$ {{ product.purchase_price|intcomma }}</p>
+                                    <p class="text-xs text-gray-500">
+                                        {% if product.is_purchase_with_tax %}(IVA incluido){% else %}(Sin IVA){% endif %}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Precio de Venta</p>
+                                    <p class="text-lg font-medium">$ {{ product.sale_price|intcomma }}</p>
+                                    <p class="text-xs text-gray-500">(IVA incluido)</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Precio Neto de Compra</p>
+                                    <p class="text-lg font-medium">$ {{ product.net_purchase_price|intcomma }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Rentabilidad</p>
+                                    <p class="text-lg font-medium">{{ product.profit_percentage }}%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stock -->
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Stock</h3>
+                            <p class="text-lg text-gray-900">{{ product.stock }} unidades</p>
+                        </div>
+
+                        <!-- Estado -->
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Estado</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                {% if product.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ product.is_active|yesno:"Activo,Inactivo" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if product.description %}
+                    <div class="mt-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Descripción</h3>
+                        <p class="text-gray-700">{{ product.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Fechas -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <div>Creado: {{ product.created_at|date:"d/m/Y H:i" }}</div>
+                            <div>Última actualización: {{ product.updated_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón volver -->
+        <div class="mt-6">
+            <a href="{% url 'products:list' %}" 
+               class="inline-flex items-center text-blue-600 hover:text-blue-900">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

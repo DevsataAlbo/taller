@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar{% else %}Crear{% endif %} Producto - Sistema de Ventas
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-2xl font-semibold mb-6">
+                {% if form.instance.pk %}
+                    Editar Producto: {{ form.instance.name }}
+                {% else %}
+                    Crear Nuevo Producto
+                {% endif %}
+            </h2>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <!-- Datos Básicos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Nombre</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Categoría</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.category.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Código</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.code.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sección de Precios y Cálculos -->
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Precios y Cálculos</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Precio de compra y checkbox IVA -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Precio de Compra</label>
+                            {{ form.purchase_price }}
+                            {% if form.purchase_price.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.purchase_price.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex items-center">
+                            {{ form.is_purchase_with_tax }}
+                            <span class="ml-2 text-sm text-gray-600">Incluye IVA</span>
+                        </div>
+
+                        <!-- Precio neto calculado -->
+                        <div class="col-span-2 bg-gray-50 p-4 rounded">
+                            <span class="text-sm text-gray-600">Precio Neto (sin IVA):</span>
+                            <span class="font-medium ml-2">$ <span id="netPurchasePrice">0</span></span>
+                        </div>
+
+                        <!-- Porcentaje de utilidad -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">% Utilidad Deseada</label>
+                            {{ form.profit_percentage }}
+                            {% if form.profit_percentage.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.profit_percentage.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Precios sugeridos calculados -->
+                        <div class="col-span-2 bg-gray-50 p-4 rounded">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-sm text-gray-600">Precio Sugerido (sin IVA):</span>
+                                    <span class="font-medium ml-2">$ <span id="suggestedPriceNoTax">0</span></span>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-gray-600">Precio Sugerido (con IVA):</span>
+                                    <span class="font-medium ml-2">$ <span id="suggestedPriceWithTax">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Precio de venta final -->
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Precio de Venta Final (con IVA)</label>
+                            {{ form.sale_price }}
+                            {% if form.sale_price.errors %}
+                                <p class="text-red-500 text-xs mt-1">{{ form.sale_price.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Utilidad final calculada -->
+                        <div class="col-span-2 bg-gray-50 p-4 rounded">
+                            <span class="text-sm text-gray-600">Utilidad Final:</span>
+                            <span class="font-medium ml-2"><span id="finalProfit">0</span>%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos Adicionales -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Stock</label>
+                        {{ form.stock }}
+                        {% if form.stock.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.stock.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Descripción</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Imagen</label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ form.image.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            {{ form.is_active }}
+                            <span class="ml-2 text-sm text-gray-700">Activo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-4 mt-6">
+                    <a href="{% url 'products:list' %}" 
+                       class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Script loaded"); 
+
+    const purchasePriceInput = document.getElementById('id_purchase_price');
+    const isTaxIncludedInput = document.getElementById('id_is_purchase_with_tax');
+    const profitPercentageInput = document.getElementById('id_profit_percentage');
+    const salePriceInput = document.getElementById('id_sale_price');
+
+    console.log("Elements found:", {
+        purchasePriceInput,
+        isTaxIncludedInput,
+        profitPercentageInput,
+        salePriceInput
+    });
+
+    function calculatePrices() {
+        console.log("Calculating prices..."); // Para verificar que la función se ejecuta
+        
+        const purchasePrice = parseInt(purchasePriceInput.value) || 0;
+        const isTaxIncluded = isTaxIncludedInput.checked;
+        const profitPercentage = parseInt(profitPercentageInput.value) || 0;
+        const salePrice = parseInt(salePriceInput.value) || 0;
+
+        console.log("Values:", {
+            purchasePrice,
+            isTaxIncluded,
+            profitPercentage,
+            salePrice
+        });
+
+        // 1. Calcular precio neto de compra
+        let netPurchasePrice;
+        if (isTaxIncluded) {
+            netPurchasePrice = Math.ceil(purchasePrice / 1.19);
+        } else {
+            netPurchasePrice = purchasePrice;
+        }
+
+        // 2. Calcular precios sugeridos basados en el porcentaje de utilidad
+        let suggestedPriceNoTax = Math.ceil(netPurchasePrice * (1 + (profitPercentage / 100)));
+        let suggestedPriceWithTax = Math.ceil(suggestedPriceNoTax * 1.19);
+
+        // 3. Si hay precio de venta, calcular utilidad real
+        let finalProfit = 0;
+        if (salePrice > 0) {
+            let netSalePrice = Math.ceil(salePrice / 1.19);
+            finalProfit = Math.ceil(((netSalePrice - netPurchasePrice) / netPurchasePrice) * 100);
+        }
+
+        // Actualizar la UI
+        document.getElementById('netPurchasePrice').textContent = netPurchasePrice.toLocaleString();
+        document.getElementById('suggestedPriceNoTax').textContent = suggestedPriceNoTax.toLocaleString();
+        document.getElementById('suggestedPriceWithTax').textContent = suggestedPriceWithTax.toLocaleString();
+        document.getElementById('finalProfit').textContent = finalProfit;
+
+        // Si no hay precio de venta ingresado, usar el precio sugerido
+        if (!salePrice && suggestedPriceWithTax > 0) {
+            salePriceInput.value = suggestedPriceWithTax;
+        }
+    }
+
+    // Event listeners
+    purchasePriceInput.addEventListener('input', calculatePrices);
+    isTaxIncludedInput.addEventListener('change', calculatePrices);
+    profitPercentageInput.addEventListener('input', calculatePrices);
+    salePriceInput.addEventListener('input', calculatePrices);
+
+    // Calcular inicialmente
+    calculatePrices();
+});
+</script>
+{% endblock %}
